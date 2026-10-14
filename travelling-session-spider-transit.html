@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#681b3b">
+<title>Travelling Session — Study Around the World</title>
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="preconnect" href="https://restcountries.com">
+<link rel="preconnect" href="https://commons.wikimedia.org">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<style>
+:root{--wine:#681b3b;--wine2:#8d2854;--purple:#8d79d6;--lav:#e9e3ff;--bg:#faf8fc;--panel:#fff;--text:#282331;--muted:#777181;--line:#e8e2ed;--soft:#f4eff8;--shadow:0 12px 36px #32102b12}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;transition:background .2s,color .2s}
+body.dark{--bg:#17131d;--panel:#211b29;--text:#f5f0fa;--muted:#b1a7bd;--line:#393042;--soft:#2d2537;--lav:#382e4c;--shadow:0 12px 36px #0003}
+button,input,select{font:inherit}button{cursor:pointer;border:0}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #ad9af5;outline-offset:2px}
+.topbar{position:sticky;top:0;z-index:1000;background:color-mix(in srgb,var(--panel) 93%,transparent);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.nav{max-width:1320px;margin:auto;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:850;letter-spacing:-.5px;font-size:18px}.brand-icon{width:38px;height:38px;border-radius:13px;background:linear-gradient(135deg,var(--wine),var(--purple));color:white;display:grid;place-items:center;font-size:20px}.brand span:last-child{color:var(--wine2)}body.dark .brand span:last-child{color:#c3b4ff}
+.nav-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.pill-btn,.btn{padding:10px 14px;border-radius:12px;font-weight:700;transition:transform .15s,opacity .15s}.pill-btn{background:var(--soft);color:var(--text);border:1px solid var(--line)}.btn{background:var(--wine);color:#fff}.btn.secondary{background:var(--lav);color:#4e3a87}.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}button:hover{filter:brightness(1.04)}button:active{transform:scale(.98)}
+main{max-width:1320px;margin:auto;padding:26px 22px 56px}.hero{position:relative;overflow:hidden;border-radius:28px;padding:clamp(24px,5vw,54px);background:linear-gradient(115deg,#51132f 0%,#7d2350 48%,#6f5bc0 100%);color:#fff;display:grid;grid-template-columns:1.35fr .65fr;gap:20px;align-items:center;box-shadow:var(--shadow)}
+.hero:after{content:"🕸️";position:absolute;right:7%;top:-70px;font-size:260px;color:#ffffff0c;pointer-events:none}.eyebrow{text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:850;color:#d8c9ff}.hero h1{font-size:clamp(34px,5vw,58px);line-height:1.03;letter-spacing:-2px;margin:12px 0 16px;max-width:650px}.hero p{color:#f2e9f4;max-width:610px;margin:0 0 24px;font-size:16px}.hero-actions{display:flex;gap:10px;flex-wrap:wrap}.hero .btn{background:white;color:#5d193b}.hero .btn.secondary{background:#ffffff20;color:white;border:1px solid #ffffff45}.hero-art{font-size:clamp(95px,15vw,180px);text-align:center;filter:drop-shadow(0 18px 22px #200a3355);transform:rotate(-9deg)}
+.section{margin-top:28px}.section-head{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:14px}.section-head h2{font-size:22px;letter-spacing:-.5px;margin:0}.section-head p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-top:18px}.stat,.panel,.country-card,.timer-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow)}.stat{padding:16px 18px}.stat small{color:var(--muted);display:block}.stat strong{font-size:23px;letter-spacing:-.5px}.stat .emoji{float:right;font-size:22px}
+.grid-two{display:grid;grid-template-columns:.85fr 1.15fr;gap:16px}.panel{padding:20px;min-width:0}.panel h3{margin:0 0 5px;font-size:17px}.subtext{color:var(--muted);font-size:13px;margin:0 0 16px}.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;min-width:0}.field label{font-size:12px;font-weight:800;color:var(--muted)}input,select{background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:11px;padding:11px 12px;width:100%;min-width:0}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.button-row{display:flex;gap:8px;flex-wrap:wrap}.button-row .btn{flex:1}
+.wheel-wrap{display:grid;grid-template-columns:150px 1fr;align-items:center;gap:18px}.wheel{width:145px;height:145px;border-radius:50%;border:7px solid var(--panel);box-shadow:0 0 0 2px var(--line),var(--shadow);background:conic-gradient(#762246 0 45deg,#8d79d6 45deg 90deg,#a63865 90deg 135deg,#c4b4ff 135deg 180deg,#762246 180deg 225deg,#8d79d6 225deg 270deg,#a63865 270deg 315deg,#c4b4ff 315deg);position:relative;display:grid;place-items:center;transition:transform 4s cubic-bezier(.12,.75,.12,1)}.wheel:after{content:"✈";display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:var(--panel);color:var(--wine);font-size:25px;box-shadow:0 2px 12px #0002}.wheel-pointer{position:absolute;top:-10px;left:calc(50% - 10px);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:22px solid #f4b95e;z-index:2}
+.map-layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(270px,.8fr);gap:14px}.map-shell{padding:10px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);min-width:0}.map-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 8px 12px;flex-wrap:wrap}.map-toolbar span{font-size:12px;color:var(--muted)}#map{height:470px;width:100%;border-radius:12px;overflow:hidden;background:#e6e0f2;z-index:1}.leaflet-container{font:inherit}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--text)}.leaflet-control-zoom a{background:var(--panel)!important;color:var(--text)!important;border-color:var(--line)!important}.leaflet-interactive{transition:fill .15s}.leaflet-tooltip{background:var(--panel);color:var(--text);border:1px solid var(--line);box-shadow:var(--shadow)}.leaflet-tooltip:before{border-top-color:var(--panel)}
+.country-info{padding:18px;display:flex;flex-direction:column;gap:12px;min-height:100%}.country-title{display:flex;align-items:center;gap:10px}.flag{font-size:30px;line-height:1}.country-title h3{margin:0;font-size:21px}.country-title p{margin:1px 0 0;color:var(--muted);font-size:12px}.country-facts{display:grid;grid-template-columns:1fr 1fr;gap:8px}.fact{background:var(--soft);padding:10px;border-radius:12px;min-width:0}.fact small{display:block;color:var(--muted);font-size:11px}.fact strong{font-size:13px;overflow-wrap:anywhere}.country-desc{font-size:13px;color:var(--muted);margin:0}.mini-heading{font-size:12px;font-weight:850;margin:2px 0 -4px}.photo-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.photo-grid img{width:100%;height:100px;object-fit:cover;border-radius:10px;background:var(--soft)}.photo-grid .photo-placeholder{height:100px;border-radius:10px;background:var(--soft);display:grid;place-items:center;color:var(--muted);font-size:12px;text-align:center;padding:8px}.activity-list{display:flex;flex-wrap:wrap;gap:7px}.activity{border-radius:999px;background:var(--lav);color:#514080;padding:6px 9px;font-size:11px;font-weight:750}body.dark .activity{color:#e5dbff}
+.route-summary{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;background:var(--soft);border-radius:13px;padding:12px;margin:10px 0}.route-summary strong{display:block;font-size:13px}.route-summary small{color:var(--muted);font-size:11px}.route-summary .plane{font-size:22px}.route-summary>div:last-child{text-align:right}
+.timer-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.timer-card{padding:20px}.timer-face{font-size:clamp(34px,5vw,48px);font-variant-numeric:tabular-nums;font-weight:850;letter-spacing:1px;margin:10px 0}.timer-track{height:7px;background:var(--soft);border-radius:99px;overflow:hidden;margin:12px 0 16px}.timer-track div{height:100%;width:0;background:linear-gradient(90deg,var(--wine),var(--purple));transition:width .25s}.timer-settings{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.timer-settings select{width:auto;flex:1}.status-chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;background:var(--soft);padding:5px 9px;font-size:11px;font-weight:800;color:var(--muted)}.status-dot{width:7px;height:7px;background:#35a878;border-radius:50%}
+.transit-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;background:linear-gradient(110deg,#f0eaff,#fff0f4);border-radius:16px;padding:18px;color:#3d294f}.transit-banner p{margin:4px 0 0;font-size:13px;color:#71617f}.transit-banner strong{font-size:17px}body.dark .transit-banner{background:linear-gradient(110deg,#342a47,#3b2532);color:#f5edff}body.dark .transit-banner p{color:#c4b4d2}
+.search-results{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.country-card{overflow:hidden;cursor:pointer;transition:transform .16s,border-color .16s}.country-card:hover{transform:translateY(-3px);border-color:var(--purple)}.country-card img{width:100%;height:110px;object-fit:cover;background:var(--soft)}.country-card .card-body{padding:11px}.country-card strong{font-size:13px}.country-card small{display:block;color:var(--muted);font-size:11px}.search-bar{display:flex;gap:8px;max-width:520px;width:100%}.search-bar input{flex:1}
+footer{max-width:1320px;margin:auto;padding:0 22px 32px;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.notice{padding:11px 13px;background:var(--soft);border:1px solid var(--line);border-radius:11px;color:var(--muted);font-size:12px}.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:2000;background:#24192d;color:white;border-radius:12px;padding:12px 17px;box-shadow:var(--shadow);max-width:90vw;display:none;font-size:13px}.toast.show{display:block;animation:fadein .2s}@keyframes fadein{from{opacity:0;translate:0 6px}to{opacity:1;translate:0 0}}
+@media(max-width:900px){.hero{grid-template-columns:1fr .35fr}.grid-two,.map-layout{grid-template-columns:1fr}.country-info{min-height:unset}.stats{grid-template-columns:repeat(2,1fr)}#map{height:390px}.search-results{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:580px){.nav{padding:10px 14px}.brand{font-size:15px}.brand-icon{width:33px;height:33px}.nav-right{gap:5px}.nav-right .pill-btn{padding:8px 9px;font-size:12px}main{padding:16px 13px 36px}.hero{padding:24px 20px;grid-template-columns:1fr}.hero-art{display:none}.hero h1{font-size:39px}.stats{gap:8px}.stat{padding:12px}.stat strong{font-size:20px}.section-head{align-items:start;flex-direction:column}.panel{padding:15px}.wheel-wrap{grid-template-columns:115px 1fr;gap:14px}.wheel{width:110px;height:110px}.form-row{grid-template-columns:1fr}.timer-grid{grid-template-columns:1fr}.search-results{grid-template-columns:repeat(2,1fr)}#map{height:340px}.photo-grid img,.photo-grid .photo-placeholder{height:90px}.transit-banner{align-items:flex-start;flex-direction:column}.country-facts{gap:6px}}
+</style>
+</head>
+<body>
+<header class="topbar"><nav class="nav">
+  <div class="brand"><div class="brand-icon" title="Spider travel theme">🕷️</div><div>Travelling <span>Session</span></div></div>
+  <div class="nav-right"><button class="pill-btn" id="jumpMap">🌍 World map</button><button class="pill-btn" id="themeToggle" aria-label="Toggle theme">🌙 Dark mode</button></div>
+</nav></header>
+<main>
+  <section class="hero">
+    <div><div class="eyebrow">YOUR PASSPORT TO FOCUS</div><h1>Study today.<br>See the world.</h1><p>Turn your study session into a journey around the planet. Discover countries, follow your flight, and earn your next break.</p><div class="hero-actions"><button class="btn" id="startJourney">✈ Plan my journey</button><button class="btn secondary" id="surpriseHero">🎲 Surprise me</button></div></div>
+    <div class="hero-art" aria-hidden="true">✈️</div>
+  </section>
+  <section class="stats" aria-label="Journey stats">
+    <div class="stat"><span class="emoji">🌎</span><small>Countries available</small><strong id="countryCount">Loading…</strong></div>
+    <div class="stat"><span class="emoji">📚</span><small>Study time today</small><strong id="studyStat">00h 00m</strong></div>
+    <div class="stat"><span class="emoji">🛫</span><small>Flight progress</small><strong id="progressStat">0%</strong></div>
+    <div class="stat"><span class="emoji">☕</span><small>Transit stops</small><strong id="stopStat">0</strong></div>
+  </section>
+
+  <section class="section grid-two" id="explore">
+    <div class="panel">
+      <h3>🎡 Spin the world</h3><p class="subtext">Can't decide where to go? Let fate choose your next destination.</p>
+      <div class="wheel-wrap"><div style="position:relative"><div class="wheel-pointer"></div><div class="wheel" id="wheel"></div></div><div><div id="wheelResult" style="font-weight:850;font-size:18px;margin-bottom:8px">Your next destination?</div><p class="subtext">One spin, one new place to discover.</p><button class="btn" id="spinWheel">Spin the wheel</button></div></div>
+      <div style="height:1px;background:var(--line);margin:20px 0"></div>
+      <h3>🔎 Explore any country</h3><p class="subtext">Search by country name in English or select a random destination.</p>
+      <div class="search-bar"><input id="countrySearch" list="countryOptions" placeholder="Try Japan, Egypt, Brazil…" autocomplete="off" aria-label="Search countries"><datalist id="countryOptions"></datalist><button class="btn" id="searchCountry">Search</button></div>
+      <div class="button-row" style="margin-top:10px"><button class="btn secondary" id="randomCountry">🎲 Random country</button><button class="btn ghost" id="useAsDestination">Use as destination</button></div>
+    </div>
+    <div class="panel" id="planner">
+      <h3>🧭 Flight planner</h3><p class="subtext">Choose where your journey starts and where you're heading.</p>
+      <div class="form-row"><div class="field"><label for="fromCountry">FROM</label><input id="fromCountry" list="countryOptions" value="Egypt" placeholder="Departure country"></div><div class="field"><label for="toCountry">TO</label><input id="toCountry" list="countryOptions" value="Japan" placeholder="Destination country"></div></div>
+      <div class="button-row"><button class="btn" id="planFlight">Calculate & draw route</button><button class="btn ghost" id="swapCountries" title="Swap countries">⇄ Swap</button></div>
+      <div class="route-summary"><div><small>DEPARTURE</small><strong id="routeFrom">Egypt</strong></div><div class="plane">✈</div><div><small>DESTINATION</small><strong id="routeTo">Japan</strong></div></div>
+      <div class="form-row"><div class="fact"><small>Approx. distance</small><strong id="distance">—</strong></div><div class="fact"><small>Estimated flight time</small><strong id="flightTime">—</strong></div></div>
+      <p class="subtext" style="margin:12px 0 0">Estimates are based on country coordinates and a typical cruising speed, not live airline schedules.</p>
+    </div>
+  </section>
+
+  <section class="section" id="world">
+    <div class="section-head"><div><h2>🌍 The living world map</h2><p>Click any country to explore it. Your flight path appears when you plan a journey.</p></div><span class="status-chip"><span class="status-dot"></span><span id="mapStatus">Loading map…</span></span></div>
+    <div class="map-layout">
+      <div class="map-shell"><div class="map-toolbar"><span>Scroll to zoom · Drag to explore · Click a country</span><div class="button-row"><button class="pill-btn" id="fitMap">Reset view</button><button class="pill-btn" id="showRoute">Show route</button></div></div><div id="map" role="application" aria-label="Interactive world map"></div></div>
+      <aside class="panel country-info" id="countryInfo" aria-live="polite">
+        <div class="country-title"><div class="flag">🌐</div><div><h3>Choose a country</h3><p>Click the map or search above</p></div></div>
+        <p class="country-desc">Discover useful facts, photos, landmarks, and small activities for your next study break.</p>
+        <div class="notice">Country data and photos load from public internet services. If something fails, try again when your connection is available.</div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section" id="study">
+    <div class="section-head"><div><h2>📚 Study cabin</h2><p>Focus while your virtual flight moves. Take a transit break when you need one.</p></div><span class="status-chip" id="sessionStatus">● Ready for takeoff</span></div>
+    <div class="timer-grid">
+      <div class="timer-card">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h3 style="margin:0">Focus timer</h3><span class="status-chip">🎯 Study</span></div>
+        <div class="timer-face" id="focusClock">25:00</div><div class="timer-track"><div id="focusProgress"></div></div>
+        <div class="timer-settings"><label for="focusLength" class="subtext" style="margin:0">Session</label><select id="focusLength"><option value="25">25 minutes</option><option value="45">45 minutes</option><option value="50">50 minutes</option><option value="60">60 minutes</option></select><button class="btn" id="focusStart">Start focus</button><button class="btn ghost" id="focusReset">Reset</button></div>
+      </div>
+      <div class="timer-card">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h3 style="margin:0">Break timer</h3><span class="status-chip">☕ Recharge</span></div>
+        <div class="timer-face" id="breakClock">05:00</div><div class="timer-track"><div id="breakProgress"></div></div>
+        <div class="timer-settings"><label for="breakLength" class="subtext" style="margin:0">Break</label><select id="breakLength"><option value="5">5 minutes</option><option value="10">10 minutes</option><option value="15">15 minutes</option></select><button class="btn secondary" id="breakStart">Start break</button><button class="btn ghost" id="breakReset">Reset</button></div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:14px"><div class="transit-banner"><div><strong>🛬 Ready for a transit stop?</strong><p>Pause studying, explore a country on your route, and collect a little inspiration before takeoff.</p></div><button class="btn" id="transitBtn">🕷️ Transit at my current location</button></div><div id="transitDetails" style="margin-top:14px;display:none"></div></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><div><h2>✨ Discover more places</h2><p>Explore a few destinations picked for curious minds.</p></div><button class="btn ghost" id="refreshDiscover">Shuffle places</button></div>
+    <div class="search-results" id="discoverGrid"><div class="notice">Loading destinations…</div></div>
+  </section>
+  <section class="section"><div class="notice">Made for curious minds. The map, country facts, and photos require an internet connection. Photos are provided by Wikimedia Commons where available. Transit suggestions are educational ideas, not travel or safety advice.</div></section>
+</main>
+<footer><span>© <span id="year"></span> Travelling Session</span><span>Made for focus, curiosity & little adventures ✈</span></footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const state = {
+ countries: [], byName: new Map(), map: null, geoLayer: null, routeLine: null,
+ planeMarker: null, routePoints: [], routeKm: 0, flightMinutes: 0, progress: 0,
+ selected: null, from: null, to: null, transitCount: 0, totalStudySeconds: 0,
+ focus: {total:1500, remaining:1500, running:false, startedAt:0, interval:null},
+ rest: {total:300, remaining:300, running:false, startedAt:0, interval:null},
+ wheelTurns: 0, routeActive: false, visited: new Set(), photoCache: new Map()
+};
+const countryNames = new Intl.DisplayNames(['en'], {type:'region'});
+function toast(message) { const t=$('toast'); t.textContent=message; t.classList.add('show'); clearTimeout(toast.timer); toast.timer=setTimeout(()=>t.classList.remove('show'),3300); }
+function safeText(value, fallback='Not available') { return value === undefined || value === null || value === '' ? fallback : String(value); }
+function escapeHtml(s) { return String(s ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtTime(seconds) { seconds=Math.max(0,Math.floor(seconds)); return String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0'); }
+function fmtDuration(minutes) { if(!Number.isFinite(minutes)) return '—'; const h=Math.floor(minutes/60),m=Math.round(minutes%60); return h ? `${h}h ${m}m` : `${m} min`; }
+function flagEmoji(code='') { return code.toUpperCase().replace(/[A-Z]/g, c=>String.fromCodePoint(c.charCodeAt(0)+127397)); }
+function getCountry(input) {
+ const q=String(input||'').trim().toLocaleLowerCase();
+ if(!q) return null;
+ return state.countries.find(c=>[c.name.common,c.name.official,c.capital?.[0],c.cca2,c.cca3].filter(Boolean).some(v=>v.toLocaleLowerCase()===q))
+ || state.countries.find(c=>c.name.common.toLocaleLowerCase().startsWith(q))
+ || state.countries.find(c=>c.name.common.toLocaleLowerCase().includes(q));
+}
+function countryCenter(c) { const p=c?.latlng; return Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)?[p[0],p[1]]:null; }
+function countryCode(c) { return c?.cca3 || c?.cca2 || ''; }
+function destinationActivities(c) {
+ const name=c?.name?.common||'this country', region=c?.region||'the region';
+ const lists={
+  Egypt:['Sketch a pyramid silhouette','Learn 5 Arabic words','Read about ancient engineering'],
+  Japan:['Learn 3 Japanese phrases','Sketch a torii gate','Explore a virtual museum'],
+  'United States':['Explore a famous film landmark','Listen to a jazz track','Read about a national park'],
+  'Saudi Arabia':['Learn about regional architecture','Explore a cultural heritage site','Read about desert ecosystems'],
+  Brazil:['Discover a rainforest species','Learn a Portuguese greeting','Explore local music styles'],
+  France:['Visit a virtual art gallery','Learn a French phrase','Sketch a landmark'],
+  Italy:['Explore ancient Roman engineering','Study a famous painting','Learn an Italian greeting'],
+  India:['Explore a historic monument','Learn a Hindi greeting','Discover regional spices'],
+  China:['Learn about the Great Wall','Explore calligraphy','Discover a regional invention'],
+  Kenya:['Discover a savanna ecosystem','Learn about wildlife conservation','Explore local geography']
+ };
+ return lists[name] || [`Explore a landmark in ${name}`,`Learn a greeting used in ${name}`,`Discover a natural wonder in ${region||name}`];
+}
+function notable(c) {
+ const n=c?.name?.common||'';
+ const known={'Egypt':'The Pyramids of Giza','United States':'Hollywood & the Grand Canyon','Saudi Arabia':'Al-Masjid al-Haram','Japan':'Mount Fuji & Kyoto','France':'The Eiffel Tower','Italy':'The Colosseum','Brazil':'Christ the Redeemer','India':'The Taj Mahal','China':'The Great Wall','United Kingdom':'Big Ben & historic castles','Australia':'The Sydney Opera House','Canada':'Niagara Falls','Mexico':'Chichén Itzá','Türkiye':'Cappadocia','Turkey':'Cappadocia','Greece':'The Acropolis','Spain':'Sagrada Família','South Korea':'Seoul & Gyeongbokgung Palace','Morocco':'Marrakech & its old medina','United Arab Emirates':'Burj Khalifa','Iceland':'Volcanic landscapes & waterfalls','Peru':'Machu Picchu','Kenya':'Maasai Mara'};
+ return known[n] || `Cultural landmarks and natural wonders of ${n}`;
+}
+async function fetchJson(url, timeout=14000) {
+ const controller=new AbortController(), timer=setTimeout(()=>controller.abort(),timeout);
+ try { const r=await fetch(url,{signal:controller.signal,headers:{Accept:'application/json'}}); if(!r.ok) throw new Error(`Request failed (${r.status})`); return await r.json(); }
+ finally { clearTimeout(timer); }
+}
+async function loadCountries() {
+ const urls=[
+  'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,capital,region,subregion,population,area,currencies,languages,flags,latlng,timezones,maps,continents',
+  'https://restcountries.com/v3.1/all'
+ ];
+ let data, lastError;
+ for(const url of urls) { try { data=await fetchJson(url); if(Array.isArray(data)&&data.length) break; } catch(e){lastError=e;} }
+ if(!Array.isArray(data)||!data.length) {
+  console.warn('Live country API unavailable; using built-in fallback list.', lastError);
+  data = [
+   ['Egypt','EG','EGY','Cairo','Africa','Northern Africa',30.0444,31.2357,'EGP','Egyptian'],
+   ['Japan','JP','JPN','Tokyo','Asia','Eastern Asia',35.6762,139.6503,'JPY','Japanese'],
+   ['United States','US','USA','Washington, D.C.','Americas','North America',38.9072,-77.0369,'USD','English'],
+   ['United Kingdom','GB','GBR','London','Europe','Northern Europe',51.5072,-0.1276,'GBP','English'],
+   ['France','FR','FRA','Paris','Europe','Western Europe',48.8566,2.3522,'EUR','French'],
+   ['Italy','IT','ITA','Rome','Europe','Southern Europe',41.9028,12.4964,'EUR','Italian'],
+   ['Spain','ES','ESP','Madrid','Europe','Southern Europe',40.4168,-3.7038,'EUR','Spanish'],
+   ['Germany','DE','DEU','Berlin','Europe','Western Europe',52.52,13.405,'EUR','German'],
+   ['Türkiye','TR','TUR','Ankara','Asia','Western Asia',39.9334,32.8597,'TRY','Turkish'],
+   ['Saudi Arabia','SA','SAU','Riyadh','Asia','Western Asia',24.7136,46.6753,'SAR','Arabic'],
+   ['United Arab Emirates','AE','ARE','Abu Dhabi','Asia','Western Asia',24.4539,54.3773,'AED','Arabic'],
+   ['Morocco','MA','MAR','Rabat','Africa','Northern Africa',34.0209,-6.8416,'MAD','Arabic'],
+   ['South Korea','KR','KOR','Seoul','Asia','Eastern Asia',37.5665,126.978,'KRW','Korean'],
+   ['China','CN','CHN','Beijing','Asia','Eastern Asia',39.9042,116.4074,'CNY','Chinese'],
+   ['India','IN','IND','New Delhi','Asia','Southern Asia',28.6139,77.209,'INR','Hindi'],
+   ['Brazil','BR','BRA','Brasília','Americas','South America',-15.7939,-47.8828,'BRL','Portuguese'],
+   ['Canada','CA','CAN','Ottawa','Americas','North America',45.4215,-75.6972,'CAD','English'],
+   ['Australia','AU','AUS','Canberra','Oceania','Australia and New Zealand',-35.2809,149.13,'AUD','English'],
+   ['Mexico','MX','MEX','Mexico City','Americas','North America',19.4326,-99.1332,'MXN','Spanish'],
+   ['Greece','GR','GRC','Athens','Europe','Southern Europe',37.9838,23.7275,'EUR','Greek'],
+   ['Portugal','PT','PRT','Lisbon','Europe','Southern Europe',38.7223,-9.1393,'EUR','Portuguese'],
+   ['Netherlands','NL','NLD','Amsterdam','Europe','Western Europe',52.3676,4.9041,'EUR','Dutch'],
+   ['Switzerland','CH','CHE','Bern','Europe','Western Europe',46.948,7.4474,'CHF','German'],
+   ['Thailand','TH','THA','Bangkok','Asia','South-Eastern Asia',13.7563,100.5018,'THB','Thai'],
+   ['Singapore','SG','SGP','Singapore','Asia','South-Eastern Asia',1.3521,103.8198,'SGD','English'],
+   ['Indonesia','ID','IDN','Jakarta','Asia','South-Eastern Asia',-6.2088,106.8456,'IDR','Indonesian'],
+   ['South Africa','ZA','ZAF','Pretoria','Africa','Southern Africa',-25.7479,28.2293,'ZAR','English'],
+   ['Kenya','KE','KEN','Nairobi','Africa','Eastern Africa',-1.2921,36.8219,'KES','Swahili'],
+   ['Argentina','AR','ARG','Buenos Aires','Americas','South America',-34.6037,-58.3816,'ARS','Spanish'],
+   ['New Zealand','NZ','NZL','Wellington','Oceania','Australia and New Zealand',-41.2866,174.7756,'NZD','English'],
+   ['Austria','AT','AUT','Vienna','Europe','Western Europe',48.2082,16.3738,'EUR','German'],
+   ['Belgium','BE','BEL','Brussels','Europe','Western Europe',50.8503,4.3517,'EUR','Dutch'],
+   ['Norway','NO','NOR','Oslo','Europe','Northern Europe',59.9139,10.7522,'NOK','Norwegian'],
+   ['Sweden','SE','SWE','Stockholm','Europe','Northern Europe',59.3293,18.0686,'SEK','Swedish'],
+   ['Denmark','DK','DNK','Copenhagen','Europe','Northern Europe',55.6761,12.5683,'DKK','Danish'],
+   ['Ireland','IE','IRL','Dublin','Europe','Northern Europe',53.3498,-6.2603,'EUR','English'],
+   ['Poland','PL','POL','Warsaw','Europe','Eastern Europe',52.2297,21.0122,'PLN','Polish'],
+   ['Czechia','CZ','CZE','Prague','Europe','Central Europe',50.0755,14.4378,'CZK','Czech'],
+   ['Hungary','HU','HUN','Budapest','Europe','Central Europe',47.4979,19.0402,'HUF','Hungarian'],
+   ['Croatia','HR','HRV','Zagreb','Europe','Southern Europe',45.815,15.9819,'EUR','Croatian'],
+   ['Iceland','IS','ISL','Reykjavik','Europe','Northern Europe',64.1466,-21.9426,'ISK','Icelandic'],
+   ['Pakistan','PK','PAK','Islamabad','Asia','Southern Asia',33.6844,73.0479,'PKR','Urdu'],
+   ['Vietnam','VN','VNM','Hanoi','Asia','South-Eastern Asia',21.0278,105.8342,'VND','Vietnamese'],
+   ['Philippines','PH','PHL','Manila','Asia','South-Eastern Asia',14.5995,120.9842,'PHP','Filipino'],
+   ['Malaysia','MY','MYS','Kuala Lumpur','Asia','South-Eastern Asia',3.139,101.6869,'MYR','Malay'],
+   ['Peru','PE','PER','Lima','Americas','South America',-12.0464,-77.0428,'PEN','Spanish'],
+   ['Chile','CL','CHL','Santiago','Americas','South America',-33.4489,-70.6693,'CLP','Spanish'],
+   ['Nigeria','NG','NGA','Abuja','Africa','Western Africa',9.0765,7.3986,'NGN','English'],
+   ['Ethiopia','ET','ETH','Addis Ababa','Africa','Eastern Africa',8.9806,38.7578,'ETB','Amharic']
+  ].map(([name,cca2,cca3,capital,region,subregion,lat,lng,currency,language])=>({
+   name:{common:name},cca2,cca3,capital:[capital],region,subregion,population:0,area:0,
+   currencies:{[currency]:{name:currency}},languages:{[language]:language},flags:{png:''},
+   latlng:[lat,lng],timezones:[],maps:{googleMaps:''},continents:[region]
+  }));
+ }
+ state.countries=data.filter(c=>c.name?.common&&countryCenter(c)).sort((a,b)=>a.name.common.localeCompare(b.name.common));
+ state.countries.forEach(c=>{state.byName.set(c.name.common.toLowerCase(),c); if(c.cca2)state.byName.set(c.cca2.toLowerCase(),c);if(c.cca3)state.byName.set(c.cca3.toLowerCase(),c);});
+ $('countryCount').textContent=state.countries.length+'+';
+ $('countryOptions').innerHTML=state.countries.map(c=>`<option value="${escapeHtml(c.name.common)}"></option>`).join('');
+}
+function initMap() {
+ if(!window.L) throw new Error('Map library could not load. Check your internet connection.');
+ state.map=L.map('map',{worldCopyJump:true,preferCanvas:true,zoomControl:true}).setView([22,12],2);
+ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',subdomains:'abcd',maxZoom:19}).addTo(state.map);
+ $('mapStatus').textContent='Loading countries…';
+}
+function featureName(feature) {
+ const p=feature.properties||{};
+ return p.ADMIN||p.name||p.NAME||p.name_en||p.SOVEREIGNT||p.ADMIN_NAME||'';
+}
+function styleFeature(feature) {
+ const selected=state.selected && featureName(feature).toLowerCase()===state.selected.name.common.toLowerCase();
+ const endpoint=state.from&&featureName(feature).toLowerCase()===state.from.name.common.toLowerCase() || state.to&&featureName(feature).toLowerCase()===state.to.name.common.toLowerCase();
+ return {color:selected?'#f2b75a':endpoint?'#8d79d6':'#fff',weight:selected||endpoint?2:0.7,fillColor:selected?'#b44b79':endpoint?'#8d79d6':(document.body.classList.contains('dark')?'#5a4969':'#a99ad7'),fillOpacity:selected?.92:endpoint?.82:(document.body.classList.contains('dark')?.72:.62)};
+}
+async function loadGeo() {
+ const urls=[
+  'https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson',
+  'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson'
+ ];
+ let geo,last;
+ for(const url of urls){try{geo=await fetchJson(url,22000);if(geo?.features?.length)break;}catch(e){last=e;}}
+ if(!geo?.features?.length) throw last||new Error('Map data unavailable');
+ state.geoLayer=L.geoJSON(geo,{
+  style:styleFeature,
+  onEachFeature:(feature,layer)=>{
+   const name=featureName(feature);
+   layer.bindTooltip(escapeHtml(name),{sticky:true,direction:'top'});
+   layer.on({mouseover:e=>{e.target.setStyle({fillOpacity:.95,weight:1.8});},mouseout:e=>{state.geoLayer.resetStyle(e.target);},click:()=>{const c=getCountry(name);if(c)showCountry(c);else toast(`Country data for ${name} isn't available from the data source.`);}});
+  }
+ }).addTo(state.map);
+ $('mapStatus').textContent='Map ready · click a country';
+}
+function setMapTheme(){if(state.geoLayer)state.geoLayer.setStyle(styleFeature);}
+function haversine(a,b) {
+ const rad=x=>x*Math.PI/180, dLat=rad(b[0]-a[0]),dLon=rad(b[1]-a[1]);
+ const h=Math.sin(dLat/2)**2+Math.cos(rad(a[0]))*Math.cos(rad(b[0]))*Math.sin(dLon/2)**2;
+ return 6371*2*Math.asin(Math.min(1,Math.sqrt(h)));
+}
+function interpolateGreatCircle(start,end,steps=120) {
+ const rad=x=>x*Math.PI/180, deg=x=>x*180/Math.PI;
+ const [lat1,lon1]=start.map(rad),[lat2,lon2]=end.map(rad);
+ const v1=[Math.cos(lat1)*Math.cos(lon1),Math.cos(lat1)*Math.sin(lon1),Math.sin(lat1)];
+ const v2=[Math.cos(lat2)*Math.cos(lon2),Math.cos(lat2)*Math.sin(lon2),Math.sin(lat2)];
+ const dot=Math.max(-1,Math.min(1,v1.reduce((s,v,i)=>s+v*v2[i],0))), omega=Math.acos(dot), sinOmega=Math.sin(omega);
+ const points=[];
+ for(let i=0;i<=steps;i++){
+  const t=i/steps;
+  let v;
+  if(Math.abs(sinOmega)<1e-6) v=v1.map((x,j)=>x*(1-t)+v2[j]*t);
+  else v=v1.map((x,j)=>Math.sin((1-t)*omega)/sinOmega*x+Math.sin(t*omega)/sinOmega*v2[j]);
+  const norm=Math.hypot(...v)||1;
+  points.push([deg(Math.asin(v[2]/norm)),deg(Math.atan2(v[1],v[0]))]);
+ }
+ return points;
+}
+function routeCountries(points) {
+ const list=[];
+ state.countries.forEach(c=>{
+  const center=countryCenter(c);if(!center||c===state.from||c===state.to)return;
+  let best=Infinity,bestIndex=0;
+  for(let i=0;i<points.length;i+=2){const d=haversine(center,points[i]);if(d<best){best=d;bestIndex=i;}}
+  if(best<500) list.push({c,d:best,index:bestIndex});
+ });
+ return list.sort((a,b)=>a.index-b.index).filter((v,i,a)=>i===0||v.c.cca3!==a[i-1].c.cca3).slice(0,8);
+}
+function clearPlane(){if(state.planeMarker&&state.map){state.map.removeLayer(state.planeMarker);state.planeMarker=null;}}
+function drawRoute(fit=true) {
+ if(!state.from||!state.to){toast('Choose valid departure and destination countries first.');return false;}
+ const a=countryCenter(state.from),b=countryCenter(state.to);
+ if(!a||!b){toast('Coordinates are missing for one of these countries.');return false;}
+ if(state.routeLine)state.map.removeLayer(state.routeLine);clearPlane();
+ state.routePoints=interpolateGreatCircle(a,b,140);
+ state.routeKm=haversine(a,b);
+ state.flightMinutes=Math.max(30,Math.round((state.routeKm/800)*60+90));
+ state.progress=0;state.routeActive=true;
+ state.routeLine=L.polyline(state.routePoints,{color:'#8d2854',weight:3.5,opacity:.92,dashArray:'8 8'}).addTo(state.map);
+ const planeIcon=L.divIcon({className:'plane-div-icon',html:'<div style="font-size:25px;filter:drop-shadow(0 2px 2px #0005);transform:rotate(0deg)">✈️</div>',iconSize:[30,30],iconAnchor:[15,15]});
+ state.planeMarker=L.marker(a,{icon:planeIcon,keyboard:true,title:'Your flight position'}).addTo(state.map);
+ state.planeMarker.bindTooltip('Your virtual flight',{direction:'top'});
+ $('routeFrom').textContent=state.from.name.common;$('routeTo').textContent=state.to.name.common;
+ $('distance').textContent=Math.round(state.routeKm).toLocaleString()+' km';$('flightTime').textContent=fmtDuration(state.flightMinutes);
+ $('progressStat').textContent='0%';$('mapStatus').textContent='Route ready · 0%';
+ if(fit){const bounds=L.latLngBounds(state.routePoints);state.map.fitBounds(bounds.pad(.18),{maxZoom:5});}
+ if(state.geoLayer)state.geoLayer.setStyle(styleFeature);
+ toast(`Route ready: ${state.from.name.common} → ${state.to.name.common}`);
+ return true;
+}
+function setProgress(value) {
+ state.progress=Math.max(0,Math.min(1,value));
+ if(state.planeMarker&&state.routePoints.length){
+  const index=Math.min(state.routePoints.length-1,Math.floor(state.progress*(state.routePoints.length-1)));
+  state.planeMarker.setLatLng(state.routePoints[index]);
+ }
+ $('progressStat').textContent=Math.round(state.progress*100)+'%';
+ $('mapStatus').textContent=state.progress>=1?'Arrived · journey complete':`Route ready · ${Math.round(state.progress*100)}%`;
+}
+function advanceFlight(seconds) {
+ if(!state.routeActive||!state.routePoints.length||state.flightMinutes<=0)return;
+ setProgress(state.progress+seconds/(state.flightMinutes*60));
+ if(state.progress>=1){state.routeActive=false;toast('You have arrived at '+(state.to?.name.common||'your destination')+'!');showCountry(state.to);}
+}
+async function fetchPhotos(c) {
+ const key=countryCode(c)||c.name.common;
+ if(state.photoCache.has(key))return state.photoCache.get(key);
+ const country=c.name.common;
+ const landmark=notable(c).split(/[&,;]/)[0].replace(/^The /,'').trim();
+ const queries=[`intitle:${country} ${landmark}`, `intitle:${country} landmark`, `${country} ${landmark}`];
+ const promise=(async()=>{
+  for(const q of queries){
+   try{
+    const url=`https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(q)}&gsrnamespace=6&gsrlimit=20&prop=imageinfo&iiprop=url%7Cextmetadata&iiurlwidth=600&format=json&origin=*`;
+    const data=await fetchJson(url,12000);
+    const pages=Object.values(data.query?.pages||{});
+    const photos=pages.map(p=>{
+      const ii=p.imageinfo?.[0]||{};
+      const title=(p.title||'').replace(/^File:/,'').replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ');
+      const desc=(ii.extmetadata?.ImageDescription?.value||'').replace(/<[^>]*>/g,' ');
+      return {title,url:ii.thumburl||ii.url,description:desc};
+    }).filter(p=>{
+      if(!p.url||! /\.(jpg|jpeg|png|webp)(\?|$)/i.test(p.url))return false;
+      const hay=(p.title+' '+p.description).toLowerCase();
+      const countryWords=country.toLowerCase().split(/\s+/).filter(w=>w.length>2);
+      const landmarkWords=landmark.toLowerCase().split(/\s+/).filter(w=>w.length>3);
+      return countryWords.some(w=>hay.includes(w)) || landmarkWords.some(w=>hay.includes(w));
+    });
+    const unique=[...new Map(photos.map(p=>[p.url,p])).values()].slice(0,4);
+    if(unique.length>=2)return unique;
+   }catch(e){console.warn('Photo search failed for',country,e);}
+  }
+  return [];
+ })();
+ state.photoCache.set(key,promise);return promise;
+}
+function photoMarkup(photos,name) {
+ if(!photos.length)return '<div class="photo-placeholder">Photos unavailable right now</div><div class="photo-placeholder">Try again when online</div>';
+ return photos.slice(0,4).map(p=>`<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(p.title)}"><img src="${escapeHtml(p.url)}" alt="${escapeHtml(name)} landmark" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'photo-placeholder',textContent:'Image unavailable'}))"></a>`).join('');
+}
+function currencyText(c){const arr=Object.values(c.currencies||{}).map(v=>v.name+(v.symbol?` (${v.symbol})`:''));return arr.slice(0,2).join(', ')||'Not listed';}
+function languagesText(c){return Object.values(c.languages||{}).slice(0,3).join(', ')||'Not listed';}
+async function showCountry(c) {
+ if(!c)return;
+ state.selected=c;setMapTheme();
+ const capital=c.capital?.[0]||'No capital listed',flag=c.flags?.svg||c.flags?.png;
+ const info=$('countryInfo');
+ info.innerHTML=`<div class="country-title"><div class="flag">${flagEmoji(c.cca2)}</div><div><h3>${escapeHtml(c.name.common)}</h3><p>${escapeHtml(c.name.official||c.name.common)}</p></div></div>
+ <div class="country-facts"><div class="fact"><small>Capital</small><strong>${escapeHtml(capital)}</strong></div><div class="fact"><small>Region</small><strong>${escapeHtml(c.region||'—')}${c.subregion?' · '+escapeHtml(c.subregion):''}</strong></div><div class="fact"><small>Population</small><strong>${Number(c.population||0).toLocaleString()}</strong></div><div class="fact"><small>Area</small><strong>${Number(c.area||0).toLocaleString()} km²</strong></div><div class="fact"><small>Currency</small><strong>${escapeHtml(currencyText(c))}</strong></div><div class="fact"><small>Languages</small><strong>${escapeHtml(languagesText(c))}</strong></div></div>
+ <p class="country-desc"><strong>Famous for:</strong> ${escapeHtml(notable(c))}.</p>
+ <div class="mini-heading">📸 Photo gallery</div><div class="photo-grid" id="countryPhotos"><div class="photo-placeholder">Loading photos…</div><div class="photo-placeholder">Finding landmarks…</div></div>
+ <div class="mini-heading">☕ Ideas for a mini break</div><div class="activity-list">${destinationActivities(c).map(x=>`<span class="activity">${escapeHtml(x)}</span>`).join('')}</div>
+ <div class="button-row"><button class="btn" id="infoDestination">Set as destination</button><button class="btn ghost" id="infoTransit">Transit here</button></div>
+ <div class="button-row"><button class="btn ghost" id="openWiki">Read more ↗</button>${c.maps?.googleMaps?'<button class="btn ghost" id="openMapLink">Open map ↗</button>':''}</div>`;
+ $('infoDestination').onclick=()=>{ $('toCountry').value=c.name.common; planFlight(); };
+ $('infoTransit').onclick=()=>openTransit(c);
+ $('openWiki').onclick=()=>window.open('https://en.wikipedia.org/wiki/'+encodeURIComponent(c.name.common),'_blank','noopener');
+ if(c.maps?.googleMaps)$('openMapLink').onclick=()=>window.open(c.maps.googleMaps,'_blank','noopener');
+ const photos=await fetchPhotos(c);
+ if(state.selected===c && $('countryPhotos')) $('countryPhotos').innerHTML=photoMarkup(photos,c.name.common);
+}
+function planFlight() {
+ const from=getCountry($('fromCountry').value),to=getCountry($('toCountry').value);
+ if(!from){toast('Departure country not found. Choose a country from the suggestions.');$('fromCountry').focus();return;}
+ if(!to){toast('Destination country not found. Choose a country from the suggestions.');$('toCountry').focus();return;}
+ if(from.cca3===to.cca3){toast('Choose two different countries for your flight.');return;}
+ state.from=from;state.to=to;state.visited.clear();state.transitCount=0;$('stopStat').textContent='0';
+ if(!state.map){toast('The map is not ready yet. Please wait a moment.');return;}
+ drawRoute(true);showCountry(to);
+}
+function randomCountry() {
+ if(!state.countries.length){toast('Countries are still loading. Try again in a moment.');return null;}
+ return state.countries[Math.floor(Math.random()*state.countries.length)];
+}
+function pickRandom(useDestination=false) {
+ const c=randomCountry();if(!c)return;
+ $('countrySearch').value=c.name.common;
+ if(useDestination){$('toCountry').value=c.name.common;if(state.from&&state.from.cca3!==c.cca3)planFlight();else showCountry(c);}
+ else showCountry(c);
+ $('world').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function spinWheel() {
+ if(!state.countries.length){toast('The country list is still loading.');return;}
+ const wheel=$('wheel');const c=randomCountry();
+ state.wheelTurns+=1440+Math.floor(Math.random()*720);
+ wheel.style.transform=`rotate(${state.wheelTurns}deg)`;
+ $('wheelResult').textContent='The world is spinning…';$('spinWheel').disabled=true;
+ setTimeout(()=>{$('wheelResult').textContent='✦ '+c.name.common;$('spinWheel').disabled=false;$('countrySearch').value=c.name.common;showCountry(c);},4100);
+}
+function renderDiscover() {
+ const grid=$('discoverGrid');if(!state.countries.length){grid.innerHTML='<div class="notice">Country list unavailable. Check your internet connection and reload.</div>';return;}
+ const chosen=[],seen=new Set();
+ while(chosen.length<6&&seen.size<state.countries.length){const c=randomCountry();if(!seen.has(c.cca3)){seen.add(c.cca3);chosen.push(c);}}
+ grid.innerHTML=chosen.map(c=>`<article class="country-card" tabindex="0" role="button" data-code="${escapeHtml(c.cca3)}" aria-label="Explore ${escapeHtml(c.name.common)}"><div style="height:110px;display:grid;place-items:center;font-size:42px;background:var(--soft)">${flagEmoji(c.cca2)}</div><div class="card-body"><strong>${escapeHtml(c.name.common)}</strong><small>${escapeHtml(c.region||'Around the world')} · ${escapeHtml(c.capital?.[0]||'Discover')}</small></div></article>`).join('');
+ chosen.forEach(c=>{const el=grid.querySelector(`[data-code="${c.cca3}"]`);if(el){const activate=()=>showCountry(c);el.addEventListener('click',()=>{activate();$('world').scrollIntoView({behavior:'smooth'});});el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();$('world').scrollIntoView({behavior:'smooth'});}});}});
+}
+function timerRender(which) {
+ const t=state[which],prefix=which==='focus'?'focus':'break';
+ $(prefix+'Clock').textContent=fmtTime(t.remaining);
+ $(prefix+'Progress').style.width=(100*(1-t.remaining/Math.max(1,t.total)))+'%';
+ const start=$(prefix+'Start');start.textContent=t.running?'Pause':(t.remaining<t.total?'Resume':which==='focus'?'Start focus':'Start break');
+}
+function stopTimer(which){const t=state[which];t.running=false;if(t.interval){clearInterval(t.interval);t.interval=null;}timerRender(which);}
+function resetTimer(which) {
+ const t=state[which];stopTimer(which);t.total=Number($(which==='focus'?'focusLength':'breakLength').value)*60;t.remaining=t.total;timerRender(which);
+}
+function startTimer(which) {
+ const t=state[which];
+ if(t.running){stopTimer(which);$('sessionStatus').textContent='● Paused';return;}
+ if(t.remaining<=0)resetTimer(which);
+ t.running=true;
+ t.startedAt=Date.now();
+ t.endsAt=t.startedAt+t.remaining*1000;
+ t.lastAccountedAt=t.startedAt;
+ timerRender(which);
+ $('sessionStatus').textContent=which==='focus'?'● Focus in progress':'● Break time';
+ t.interval=setInterval(()=>{
+  const now=Date.now();
+  const elapsed=Math.max(0,(now-t.lastAccountedAt)/1000);
+  t.lastAccountedAt=now;
+  t.remaining=Math.max(0,Math.ceil((t.endsAt-now)/1000));
+  if(which==='focus'){
+   state.totalStudySeconds+=elapsed;
+   advanceFlight(elapsed);
+   $('studyStat').textContent=String(Math.floor(state.totalStudySeconds/3600)).padStart(2,'0')+'h '+String(Math.floor(state.totalStudySeconds%3600/60)).padStart(2,'0')+'m';
+  } else advanceFlight(elapsed);
+  timerRender(which);
+  if(t.remaining<=0){
+   stopTimer(which);
+   $('sessionStatus').textContent=which==='focus'?'● Focus complete':'● Break complete';
+   toast(which==='focus'?'Focus session complete — time for a well-earned break!':'Break is over — ready to focus again?');
+  }
+ },200);
+}
+function countryNearestToPlane() {
+ if(!state.routePoints.length || !state.countries.length) return state.to || state.selected || randomCountry();
+ const idx=Math.max(0,Math.min(state.routePoints.length-1,Math.round(state.progress*(state.routePoints.length-1))));
+ const pos=state.routePoints[idx];
+ let best=null,bestKm=Infinity;
+ for(const c of state.countries){
+  const center=countryCenter(c); if(!center)continue;
+  const d=haversine(pos,center);
+  if(d<bestKm){bestKm=d;best=c;}
+ }
+ return best || state.to || state.selected || randomCountry();
+}
+function openTransit(c) {
+ if(!c){c=state.from&&state.to?countryNearestToPlane():(state.selected||randomCountry());}
+ if(!c)return;
+ stopTimer('focus');stopTimer('rest');
+ resetTimer('rest');startTimer('rest');
+ state.transitCount++;state.visited.add(c.cca3);$('stopStat').textContent=String(state.transitCount);
+ const box=$('transitDetails');box.style.display='block';
+ box.innerHTML=`<div class="panel" style="padding:16px"><div class="country-title"><div class="flag">${flagEmoji(c.cca2)}</div><div><h3>Transit in ${escapeHtml(c.name.common)}</h3><p>🕷️ Your plane’s nearest mapped country · a study break stop</p></div></div><p class="country-desc" style="margin:10px 0">Famous for: ${escapeHtml(notable(c))}. Choose one activity and keep your break light and refreshing.</p><div class="activity-list">${destinationActivities(c).map(x=>`<span class="activity">${escapeHtml(x)}</span>`).join('')}</div><div class="photo-grid" id="transitPhotos" style="margin-top:12px"><div class="photo-placeholder">Loading photos…</div><div class="photo-placeholder">Finding landmarks…</div></div><div class="button-row" style="margin-top:12px"><button class="btn" id="continueTrip">✈ Continue journey</button><button class="btn ghost" id="exploreTransit">Explore country details</button></div></div>`;
+ $('continueTrip').onclick=()=>{stopTimer('rest');box.style.display='none';toast('Break finished — start your next focus session when ready.');};
+ $('exploreTransit').onclick=()=>{showCountry(c);$('world').scrollIntoView({behavior:'smooth'});};
+ fetchPhotos(c).then(photos=>{if($('transitPhotos')&&box.style.display!=='none')$('transitPhotos').innerHTML=photoMarkup(photos,c.name.common);});
+ box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function bindEvents() {
+ $('planFlight').addEventListener('click',planFlight);
+ $('swapCountries').addEventListener('click',()=>{const a=$('fromCountry').value;$('fromCountry').value=$('toCountry').value;$('toCountry').value=a;planFlight();});
+ $('startJourney').addEventListener('click',()=>{$('planner').scrollIntoView({behavior:'smooth',block:'center'});$('fromCountry').focus();});
+ $('surpriseHero').addEventListener('click',()=>pickRandom(true));
+ $('randomCountry').addEventListener('click',()=>pickRandom(false));
+ $('spinWheel').addEventListener('click',spinWheel);
+ $('searchCountry').addEventListener('click',()=>{const c=getCountry($('countrySearch').value);if(!c){toast('Country not found. Try its English name, such as Japan or Egypt.');return;}showCountry(c);$('world').scrollIntoView({behavior:'smooth'});});
+ $('countrySearch').addEventListener('keydown',e=>{if(e.key==='Enter')$('searchCountry').click();});
+ $('useAsDestination').addEventListener('click',()=>{const c=getCountry($('countrySearch').value);if(!c){toast('Search for a valid country first.');return;}$('toCountry').value=c.name.common;if(state.from&&state.from.cca3!==c.cca3)planFlight();else showCountry(c);});
+ $('jumpMap').addEventListener('click',()=>$('world').scrollIntoView({behavior:'smooth'}));
+ $('fitMap').addEventListener('click',()=>{if(state.map)state.map.setView([22,12],2);});
+ $('showRoute').addEventListener('click',()=>{if(state.routeLine&&state.map)state.map.fitBounds(state.routeLine.getBounds().pad(.15),{maxZoom:5});else planFlight();});
+ $('themeToggle').addEventListener('click',()=>{const dark=document.body.classList.toggle('dark');$('themeToggle').textContent=dark?'☀️ Light mode':'🌙 Dark mode';try{localStorage.setItem('ts-theme',dark?'dark':'light');}catch(e){}setMapTheme();});
+ $('focusLength').addEventListener('change',()=>{if(!state.focus.running)resetTimer('focus');});
+ $('breakLength').addEventListener('change',()=>{if(!state.rest.running)resetTimer('rest');});
+ $('focusStart').addEventListener('click',()=>startTimer('focus'));
+ $('focusReset').addEventListener('click',()=>{resetTimer('focus');$('sessionStatus').textContent='● Ready for takeoff';});
+ $('breakStart').addEventListener('click',()=>startTimer('rest'));
+ $('breakReset').addEventListener('click',()=>resetTimer('rest'));
+ $('transitBtn').addEventListener('click',()=>openTransit());
+ $('refreshDiscover').addEventListener('click',renderDiscover);
+ $('year').textContent=new Date().getFullYear();
+ try{if(localStorage.getItem('ts-theme')==='dark'){document.body.classList.add('dark');$('themeToggle').textContent='☀️ Light mode';}}catch(e){}
+}
+async function boot() {
+ bindEvents();timerRender('focus');timerRender('rest');
+ try {
+  initMap();
+  await loadCountries();
+  $('fromCountry').value='Egypt';$('toCountry').value='Japan';
+  renderDiscover();
+  $('mapStatus').textContent='Loading map geometry…';
+  loadGeo().then(()=>{planFlight();setTimeout(()=>state.map.invalidateSize(),150);}).catch(e=>{$('mapStatus').textContent='Map data unavailable';toast('The interactive map data could not load. Country search and timers can still work.');console.error(e);});
+ } catch(e) {
+  console.error(e);$('countryCount').textContent='—';$('mapStatus').textContent='Map unavailable';
+  toast('Could not load country data. Check your connection and refresh the page.');
+  $('discoverGrid').innerHTML='<div class="notice">Country data could not load. Check your connection and reload the page.</div>';
+ }
+}
+boot();
+})();
+</script>
+</body>
+</html>
